@@ -7,3 +7,6 @@
 *.class
 *.jar
 *.log
+.idea/
+*.JPG
+*.txt
