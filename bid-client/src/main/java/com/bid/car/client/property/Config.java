@@ -25,10 +25,14 @@ public class Config {
         InputStream inputStream = new FileInputStream(file);
         Properties properties = new Properties();
         properties.load(inputStream);
-        Integer x = Integer.valueOf(properties.getProperty("x"));
-        Integer y = Integer.valueOf(properties.getProperty("y"));
-        Integer width = Integer.valueOf(properties.getProperty("width"));
-        Integer height = Integer.valueOf(properties.getProperty("height"));
+        return getRectangle(inputStream, properties);
+    }
+
+    private static Rectangle getRectangle(InputStream inputStream, Properties properties) throws IOException {
+        Integer x = new Double(properties.getProperty("x")).intValue();
+        Integer y = new Double(properties.getProperty("y")).intValue();
+        Integer width = new Double(properties.getProperty("width")).intValue();
+        Integer height = new Double(properties.getProperty("height")).intValue();
 
 
         inputStream.close();
@@ -40,13 +44,26 @@ public class Config {
         InputStream inputStream = new FileInputStream(file);
         Properties properties = new Properties();
         properties.load(inputStream);
-        Integer x = Integer.valueOf(properties.getProperty("x"));
-        Integer y = Integer.valueOf(properties.getProperty("y"));
-        Integer width = Integer.valueOf(properties.getProperty("width"));
-        Integer height = Integer.valueOf(properties.getProperty("height"));
+        return getRectangle(inputStream, properties);
+    }
+
+    public static Point readInputCode() throws IOException{
+
+        File file = new File("input-code.properties");
+        InputStream inputStream = new FileInputStream(file);
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        return getPoint(inputStream, properties);
+    }
+
+    private static Point getPoint(InputStream inputStream, Properties properties) throws IOException {
+        Integer x = new Double(properties.getProperty("x")).intValue();
+        Integer y = new Double(properties.getProperty("y")).intValue();
+        Integer width = new Double(properties.getProperty("width")).intValue();
+        Integer height = new Double(properties.getProperty("height")).intValue();
 
         inputStream.close();
-        return new Rectangle(x,y ,width, height);
+        return new Point(x + width/2 ,y +  height /2 );
     }
 
     public static Point readInputPricePosition() throws IOException {
@@ -54,13 +71,7 @@ public class Config {
         InputStream inputStream = new FileInputStream(file);
         Properties properties = new Properties();
         properties.load(inputStream);
-        Integer x = Integer.valueOf(properties.getProperty("x"));
-        Integer y = Integer.valueOf(properties.getProperty("y"));
-        Integer width = Integer.valueOf(properties.getProperty("width"));
-        Integer height = Integer.valueOf(properties.getProperty("height"));
-
-        inputStream.close();
-        return new Point(x+width/2,y + height/2);
+        return getPoint(inputStream, properties);
     }
 
     public static Point readBidButton() throws IOException {
@@ -68,13 +79,7 @@ public class Config {
         InputStream inputStream = new FileInputStream(file);
         Properties properties = new Properties();
         properties.load(inputStream);
-        Integer x = Integer.valueOf(properties.getProperty("x"));
-        Integer y = Integer.valueOf(properties.getProperty("y"));
-        Integer width = Integer.valueOf(properties.getProperty("width"));
-        Integer height = Integer.valueOf(properties.getProperty("height"));
-
-        inputStream.close();
-        return new Point(x+width/2,y + height/2);
+        return getPoint(inputStream, properties);
     }
 
     public static Point readSubmitButton() throws IOException {
@@ -82,13 +87,7 @@ public class Config {
         InputStream inputStream = new FileInputStream(file);
         Properties properties = new Properties();
         properties.load(inputStream);
-        Integer x = Integer.valueOf(properties.getProperty("x"));
-        Integer y = Integer.valueOf(properties.getProperty("y"));
-        Integer width = Integer.valueOf(properties.getProperty("width"));
-        Integer height = Integer.valueOf(properties.getProperty("height"));
-
-        inputStream.close();
-        return new Point(x+width/2,y + height/2);
+        return getPoint(inputStream, properties);
     }
 
 }

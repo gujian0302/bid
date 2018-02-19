@@ -40,7 +40,10 @@ public class ScheduleCaptureTask {
     private Integer bidPrice;
     private Rectangle lowestPricePosition;
     private Rectangle codePosition;
+    //输入价格的位置
     private Point inputPricePosition;
+    //输入验证码的输入框的位置
+    private Point inputCodePosition;
     private Point clickPosition;
     private LocalTime lastBidTime;
     private LocalTime startTime;
@@ -50,7 +53,7 @@ public class ScheduleCaptureTask {
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
-    public ScheduleCaptureTask(Rectangle lowestPricePosition, Point inputPricePosition, Point clickPosition, Integer additionalPrice, Point addBidPosition, Rectangle codePosition, LocalTime lastBidTime, LocalTime startTime) throws AWTException {
+    public ScheduleCaptureTask(Rectangle lowestPricePosition, Point inputPricePosition,Point inputCodePosition, Point clickPosition, Integer additionalPrice, Point addBidPosition, Rectangle codePosition, LocalTime lastBidTime, LocalTime startTime) throws AWTException {
         this.lowestPricePosition = lowestPricePosition;
         this.inputPricePosition = inputPricePosition;
         this.clickPosition = clickPosition;
@@ -59,14 +62,15 @@ public class ScheduleCaptureTask {
         this.addBidPosition = addBidPosition;
         this.lastBidTime = lastBidTime;
         this.startTime = startTime;
+        this.inputCodePosition = inputCodePosition;
         this.robot = new Robot();
     }
 
     public void scanLowestPricePosition() throws IOException {
         BufferedImage capturedImage = CaptureImageUtils.capture(robot, this.lowestPricePosition);
-        String dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        String dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
         this.imageName = filePrefix + dateFormat + ".JPG";
-        this.textName = filePrefix + dateFormat + ".text";
+        this.textName = filePrefix + dateFormat + ".txt";
         this.textPrefix = filePrefix + dateFormat;
         File file = new File(imageName);
         FileOutputStream fileOutputStream = new FileOutputStream(file);
@@ -77,16 +81,19 @@ public class ScheduleCaptureTask {
 
     public void executeTesseractCommand() {
         try {
-            Runtime.getRuntime().exec(String.format("tesseract %s %s", this.imageName, this.textPrefix));
+            Runtime.getRuntime().exec(String.format("tesseract %s %s", this.imageName, this.textPrefix)).waitFor();
         } catch (IOException e) {
             e.printStackTrace();
             log.error("执行tesseract：{},{}", this.imageName, this.textPrefix);
+        } catch (InterruptedException e) {
+            log.error("超时执行tesseract");
+            e.printStackTrace();
         }
     }
 
 
     public void inputCode(String code) {
-        robot.mouseMove((int) this.inputPricePosition.getX(), (int) this.inputPricePosition.getY());
+        robot.mouseMove((int) this.inputCodePosition.getX(), (int) this.inputCodePosition.getY());
         robot.mousePress(InputEvent.BUTTON1_MASK);
         robot.delay(50);
         robot.mouseRelease(InputEvent.BUTTON1_MASK);
@@ -95,14 +102,19 @@ public class ScheduleCaptureTask {
         robot.delay(50);
         robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
-        for (int j = 0; j < code.length(); j++) {
-            char c = code.charAt(j);
-            KeyStroke keycode = KeyStroke.getKeyStroke(c);
+        type(code);
+        robot.delay(50);
+    }
+
+    private void type(String str) {
+        for (int j = 0; j < str.length(); j++) {
+            char c = str.charAt(j);
+            KeyStroke keycode = KeyStroke.getKeyStroke(c, 0);
+            log.debug("press key code:{}", keycode);
             robot.keyPress(keycode.getKeyCode());
             robot.delay(50);
             robot.keyRelease(keycode.getKeyCode());
         }
-        robot.delay(50);
     }
 
     public void submit() {
@@ -119,6 +131,20 @@ public class ScheduleCaptureTask {
         String base64ImageData = Base64.getEncoder().encodeToString(imageData);
         consumer.accept(base64ImageData);
         log.info("加密图片发送");
+    }
+
+    //输入最低价格
+    public void inputPrice(){
+        Integer bidPrice = this.bidPrice;
+        robot.mouseMove((int)this.inputPricePosition.getX(),(int)this.inputPricePosition.getY());
+
+        doubleClick();
+        type(bidPrice.toString());
+        robot.delay(50);
+
+        this.clickAddBid();
+        robot.delay(50);
+
     }
 
     //点击确认加价，
@@ -139,7 +165,7 @@ public class ScheduleCaptureTask {
 
 
     public Boolean checkTimeToSubmit() {
-        if (this.lowestPrice >= this.bidPrice && LocalTime.now().isAfter(this.lastBidTime)) {
+        if ( (this.lowestPrice >= this.bidPrice || LocalTime.now().isAfter(this.lastBidTime) ) && this.code != null) {
             this.submit();
             log.info("点击确认进行提交: 在什么时候{},价格为:{}", LocalTime.now(), this.bidPrice);
             return Boolean.TRUE;
@@ -151,8 +177,8 @@ public class ScheduleCaptureTask {
 
     public Integer readLowestPrice() throws IOException {
         String lowestPriceStr = new String(Files.readAllBytes(Paths.get(this.textName)));
-        log.info("read lowest price:{}", this.lowestPrice);
-        this.lowestPrice = Integer.valueOf(lowestPriceStr);
+        log.info("read lowest price:{}", lowestPriceStr);
+        this.lowestPrice =  this.formatNumber(lowestPriceStr);
         return this.lowestPrice;
     }
 
@@ -173,15 +199,16 @@ public class ScheduleCaptureTask {
             try {
                 scanLowestPricePosition();
                 executeTesseractCommand();
+                robot.delay(1000);
                 firstReadLowestPrice();
 
                 log.info("task:{}", this);
-                this.clickAddBid();
+                this.inputPrice();
                 this.sendImage((item) -> socket.emit("IMAGE", item));
 
             } catch (IOException e) {
-                e.printStackTrace();
                 log.error("遇到错误:{}", e);
+                e.printStackTrace();
             }
         }, delay, TimeUnit.SECONDS);
 
@@ -201,6 +228,18 @@ public class ScheduleCaptureTask {
                 e.printStackTrace();
             }
         }, delay, 1, TimeUnit.SECONDS);
+    }
+
+    public Integer formatNumber(String number) {
+        StringBuilder result = new StringBuilder();
+        Boolean flag = false;
+        for (int i = 0 ; i < number.length(); ++i) {
+            if (flag) break;
+            if (Character.isDigit(number.charAt(i))){
+                result.append(number.charAt(i));
+            }
+        }
+        return Integer.valueOf(result.toString());
     }
 
 }

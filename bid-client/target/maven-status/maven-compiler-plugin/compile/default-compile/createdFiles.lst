@@ -1,8 +1,8 @@
-com/bid/car/client/Main$2.class
-com/bid/car/client/StreamUtils.class
-com/bid/car/client/Main$4.class
-com/bid/car/client/property/Config.class
-com/bid/car/client/Main$1.class
-com/bid/car/client/Main.class
-com/bid/car/client/Main$3.class
-com/bid/car/client/Server.class
+com\bid\car\client\Main.class
+com\bid\car\client\StreamUtils.class
+com\bid\car\client\robot\ScheduleCaptureTask.class
+com\bid\car\client\Server.class
+com\bid\car\client\Main$2.class
+com\bid\car\client\Main$1.class
+com\bid\car\client\property\Config.class
+com\bid\car\client\robot\CaptureImageUtils.class

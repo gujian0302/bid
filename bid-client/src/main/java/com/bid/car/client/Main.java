@@ -55,9 +55,10 @@ public class Main {
 //
         socket.connect();
         LocalTime now = LocalTime.now().plus(5, SECONDS);
-        LocalTime lastBidTime = LocalTime.now().plus(30, SECONDS);
+        LocalTime lastBidTime = LocalTime.now().plus(98, SECONDS);
         ScheduleCaptureTask scheduleCaptureTask = new ScheduleCaptureTask(Config.readLowestPricePosition(),
-                Config.readInputPricePosition(), Config.readSubmitButton(), 700 ,  Config.readBidButton(), Config.readCodePosition(), lastBidTime, now);
+                Config.readInputPricePosition(),Config.readInputCode(), Config.readSubmitButton(), 1000 ,  Config.readBidButton(), Config.readCodePosition(), lastBidTime, now);
+        scheduleCaptureTask.start(socket);
 //        File file = new File("/Users/gwen/Desktop/1.png");
 //        FileInputStream fileInputStream = new FileInputStream(file);
 //        String base64Image = Base64.getEncoder().encodeToString(StreamUtils.read(fileInputStream));
