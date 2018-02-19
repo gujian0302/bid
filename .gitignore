@@ -10,3 +10,5 @@
 .idea/
 *.JPG
 *.txt
+*.ipr
+*.iws
