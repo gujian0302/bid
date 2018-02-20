@@ -54,10 +54,10 @@ public class Main {
 //        });
 //
         socket.connect();
-        LocalTime now = LocalTime.now().plus(5, SECONDS);
-        LocalTime lastBidTime = LocalTime.now().plus(98, SECONDS);
+        LocalTime now = LocalTime.now().plus(20, SECONDS);
+        LocalTime lastBidTime = LocalTime.now().plus(40,  SECONDS);
         ScheduleCaptureTask scheduleCaptureTask = new ScheduleCaptureTask(Config.readLowestPricePosition(),
-                Config.readInputPricePosition(),Config.readInputCode(), Config.readSubmitButton(), 1000 ,  Config.readBidButton(), Config.readCodePosition(), lastBidTime, now);
+                Config.readInputPricePosition(),Config.readInputCode(), Config.readSubmitButton(), 700 ,  Config.readBidButton(), Config.readCodePosition(), lastBidTime, now, Config.readNewLowestPosition());
         scheduleCaptureTask.start(socket);
 //        File file = new File("/Users/gwen/Desktop/1.png");
 //        FileInputStream fileInputStream = new FileInputStream(file);

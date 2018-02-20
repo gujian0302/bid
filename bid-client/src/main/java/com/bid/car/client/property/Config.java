@@ -4,6 +4,7 @@ import com.bid.car.client.Server;
 
 import java.awt.*;
 import java.io.*;
+import java.util.InputMismatchException;
 import java.util.Properties;
 
 public class Config {
@@ -45,6 +46,14 @@ public class Config {
         Properties properties = new Properties();
         properties.load(inputStream);
         return getRectangle(inputStream, properties);
+    }
+
+    public static Rectangle readNewLowestPosition() throws IOException {
+        File file = new File("new-lowest-price.properties");
+        InputStream inputStream = new FileInputStream(file);
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        return getRectangle(inputStream,properties);
     }
 
     public static Point readInputCode() throws IOException{

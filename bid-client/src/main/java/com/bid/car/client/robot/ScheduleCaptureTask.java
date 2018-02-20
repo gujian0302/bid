@@ -50,10 +50,11 @@ public class ScheduleCaptureTask {
     private String code;
     private Point addBidPosition;
     private Robot robot;
+    private Rectangle newLowestPosition;
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
-    public ScheduleCaptureTask(Rectangle lowestPricePosition, Point inputPricePosition,Point inputCodePosition, Point clickPosition, Integer additionalPrice, Point addBidPosition, Rectangle codePosition, LocalTime lastBidTime, LocalTime startTime) throws AWTException {
+    public ScheduleCaptureTask(Rectangle lowestPricePosition, Point inputPricePosition,Point inputCodePosition, Point clickPosition, Integer additionalPrice, Point addBidPosition, Rectangle codePosition, LocalTime lastBidTime, LocalTime startTime, Rectangle newLowestPricePosition ) throws AWTException {
         this.lowestPricePosition = lowestPricePosition;
         this.inputPricePosition = inputPricePosition;
         this.clickPosition = clickPosition;
@@ -63,6 +64,7 @@ public class ScheduleCaptureTask {
         this.lastBidTime = lastBidTime;
         this.startTime = startTime;
         this.inputCodePosition = inputCodePosition;
+        this.newLowestPosition = newLowestPricePosition;
         this.robot = new Robot();
     }
 
@@ -81,7 +83,7 @@ public class ScheduleCaptureTask {
 
     public void executeTesseractCommand() {
         try {
-            Runtime.getRuntime().exec(String.format("tesseract %s %s", this.imageName, this.textPrefix)).waitFor();
+            Runtime.getRuntime().exec(String.format("tesseract %s %s  -psm 10 digits", this.imageName, this.textPrefix)).waitFor();
         } catch (IOException e) {
             e.printStackTrace();
             log.error("执行tesseract：{},{}", this.imageName, this.textPrefix);
@@ -115,6 +117,7 @@ public class ScheduleCaptureTask {
             robot.delay(50);
             robot.keyRelease(keycode.getKeyCode());
         }
+        robot.delay(50);
     }
 
     public void submit() {
@@ -140,10 +143,10 @@ public class ScheduleCaptureTask {
 
         doubleClick();
         type(bidPrice.toString());
-        robot.delay(50);
+        robot.delay(100);
 
         this.clickAddBid();
-        robot.delay(50);
+        robot.delay(100);
 
     }
 
@@ -187,11 +190,33 @@ public class ScheduleCaptureTask {
         this.bidPrice = lowestPrice + this.additionalPrice;
     }
 
+    public void executeScheduleTask(){
+        this.lowestPricePosition = this.newLowestPosition;
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
+            try {
+                log.info("schdule before:{}", this);
+                scanLowestPricePosition();
+                executeTesseractCommand();
+                readLowestPrice();
+
+                log.info("schedule after:{}", this);
+
+                if(checkTimeToSubmit()){
+                    System.exit(0);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }, 0, 1, TimeUnit.SECONDS);
+    }
+
     public void start(Socket socket) {
         socket.on("CODE", objects -> {
             log.info("Receive code:{}", objects);
             this.code = objects[0].toString();
             this.inputCode(this.code);
+
+            this.executeScheduleTask();
         });
 
         long delay = Duration.between(LocalTime.now(), this.startTime).getSeconds();
@@ -211,23 +236,6 @@ public class ScheduleCaptureTask {
                 e.printStackTrace();
             }
         }, delay, TimeUnit.SECONDS);
-
-        scheduledExecutorService.scheduleAtFixedRate(() -> {
-            try {
-                log.info("schdule before:{}", this);
-                scanLowestPricePosition();
-                executeTesseractCommand();
-                readLowestPrice();
-
-                log.info("schedule after:{}", this);
-
-               if(checkTimeToSubmit()){
-                   System.exit(0);
-               }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }, delay, 1, TimeUnit.SECONDS);
     }
 
     public Integer formatNumber(String number) {
