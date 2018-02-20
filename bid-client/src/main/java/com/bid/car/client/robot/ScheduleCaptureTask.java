@@ -133,7 +133,7 @@ public class ScheduleCaptureTask {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(CaptureImageUtils.capture(this.robot, this.codePosition), "JPG", byteArrayOutputStream);
         byte[] imageData = byteArrayOutputStream.toByteArray();
-        String imageUrl = CDN.upload(imageData, ossClient,"IMAGE");
+        String imageUrl = CDN.upload(imageData, ossClient,"omni-img-test");
 
         String base64ImageData = Base64.getEncoder().encodeToString(imageData);
         consumer.accept(imageUrl);
