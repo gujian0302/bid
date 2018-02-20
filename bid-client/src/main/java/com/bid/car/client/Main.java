@@ -1,5 +1,6 @@
 package com.bid.car.client;
 
+import com.aliyun.oss.OSSClient;
 import com.bid.car.client.property.Config;
 import com.bid.car.client.robot.ScheduleCaptureTask;
 import io.socket.client.IO;
@@ -56,8 +57,10 @@ public class Main {
         socket.connect();
         LocalTime now = LocalTime.now().plus(20, SECONDS);
         LocalTime lastBidTime = LocalTime.now().plus(40,  SECONDS);
+        OSSClient ossClient = new OSSClient("oss-cn-shanghai.aliyuncs.com", "LTAI5g3WwlfsKf3A",  "zPzVwt9JOgHgHCbUyosfKIrMl9XWrM");
         ScheduleCaptureTask scheduleCaptureTask = new ScheduleCaptureTask(Config.readLowestPricePosition(),
-                Config.readInputPricePosition(),Config.readInputCode(), Config.readSubmitButton(), 700 ,  Config.readBidButton(), Config.readCodePosition(), lastBidTime, now, Config.readNewLowestPosition());
+                Config.readInputPricePosition(),Config.readInputCode(), Config.readSubmitButton(), 700 ,  Config.readBidButton(),
+                Config.readCodePosition(), lastBidTime, now, Config.readNewLowestPosition(), ossClient);
         scheduleCaptureTask.start(socket);
 //        File file = new File("/Users/gwen/Desktop/1.png");
 //        FileInputStream fileInputStream = new FileInputStream(file);
@@ -68,6 +71,14 @@ public class Main {
 //                socket.emit("IMAGE", base64Image);
 //            }
 //        }, 0, 5, TimeUnit.SECONDS);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run() {
+                ossClient.shutdown();
+                super.run();
+            }
+        });
     }
 }
 

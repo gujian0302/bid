@@ -10,8 +10,9 @@ class App extends Component {
       const { socket } = this.props;
       socket.on('IMAGE', data => {
           console.log(data)
-          this.setState({imgSrc: `data:image/png;base64, ${data.base64Image}`, sessionId: data.sessionId })
+          this.setState({imgSrc: `${data.base64Image}`, sessionId: data.sessionId })
       })
+
   }
 
   render() {
@@ -23,7 +24,7 @@ class App extends Component {
           <button onClick={() => {
               const socket = this.props.socket;
               socket.emit('CODE', {sessionId: this.state.sessionId, code: this.state.input});
-              this.setState({imgSrc:'', sessionId: ''});
+              this.setState({imgSrc:'', sessionId: '', input:''});
               console.log(this.state.input);
           }}>提交</button>
         </div>

@@ -1,5 +1,6 @@
 package com.bid.car.client.robot;
 
+import com.aliyun.oss.OSSClient;
 import io.socket.client.Socket;
 import lombok.Data;
 import lombok.ToString;
@@ -51,10 +52,11 @@ public class ScheduleCaptureTask {
     private Point addBidPosition;
     private Robot robot;
     private Rectangle newLowestPosition;
+    private OSSClient ossClient;
 
     private ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
 
-    public ScheduleCaptureTask(Rectangle lowestPricePosition, Point inputPricePosition,Point inputCodePosition, Point clickPosition, Integer additionalPrice, Point addBidPosition, Rectangle codePosition, LocalTime lastBidTime, LocalTime startTime, Rectangle newLowestPricePosition ) throws AWTException {
+    public ScheduleCaptureTask(Rectangle lowestPricePosition, Point inputPricePosition,Point inputCodePosition, Point clickPosition, Integer additionalPrice, Point addBidPosition, Rectangle codePosition, LocalTime lastBidTime, LocalTime startTime, Rectangle newLowestPricePosition, OSSClient ossClient ) throws AWTException {
         this.lowestPricePosition = lowestPricePosition;
         this.inputPricePosition = inputPricePosition;
         this.clickPosition = clickPosition;
@@ -65,6 +67,7 @@ public class ScheduleCaptureTask {
         this.startTime = startTime;
         this.inputCodePosition = inputCodePosition;
         this.newLowestPosition = newLowestPricePosition;
+        this.ossClient = ossClient;
         this.robot = new Robot();
     }
 
@@ -130,9 +133,10 @@ public class ScheduleCaptureTask {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(CaptureImageUtils.capture(this.robot, this.codePosition), "JPG", byteArrayOutputStream);
         byte[] imageData = byteArrayOutputStream.toByteArray();
+        String imageUrl = CDN.upload(imageData, ossClient,"IMAGE");
 
         String base64ImageData = Base64.getEncoder().encodeToString(imageData);
-        consumer.accept(base64ImageData);
+        consumer.accept(imageUrl);
         log.info("加密图片发送");
     }
 
