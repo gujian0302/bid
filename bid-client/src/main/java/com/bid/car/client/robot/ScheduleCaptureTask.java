@@ -133,10 +133,11 @@ public class ScheduleCaptureTask {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ImageIO.write(CaptureImageUtils.capture(this.robot, this.codePosition), "JPG", byteArrayOutputStream);
         byte[] imageData = byteArrayOutputStream.toByteArray();
-        String imageUrl = CDN.upload(imageData, ossClient,"omni-img-test");
+//        String imageUrl = CDN.upload(imageData, ossClient,"omni-img-test");
+        String base64Data = Base64.getEncoder().encodeToString(imageData);
 
-        String base64ImageData = Base64.getEncoder().encodeToString(imageData);
-        consumer.accept(imageUrl);
+        log.info("IMAGE_URL:{}", base64Data);
+        consumer.accept(base64Data);
         log.info("加密图片发送");
     }
 
@@ -172,6 +173,7 @@ public class ScheduleCaptureTask {
 
 
     public Boolean checkTimeToSubmit() {
+        log.info("lowestPrice:{} bidPrice:{}, lastBidTime:{}, now:{}, code:{}", this.lowestPrice, this.bidPrice, this.lastBidTime, LocalTime.now(),code);
         if ( (this.lowestPrice >= this.bidPrice || LocalTime.now().isAfter(this.lastBidTime) ) && this.code != null) {
             this.submit();
             log.info("点击确认进行提交: 在什么时候{},价格为:{}", LocalTime.now(), this.bidPrice);
