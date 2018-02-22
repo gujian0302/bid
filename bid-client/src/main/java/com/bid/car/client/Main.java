@@ -2,6 +2,7 @@ package com.bid.car.client;
 
 import com.aliyun.oss.OSSClient;
 import com.bid.car.client.property.Config;
+import com.bid.car.client.property.ConfigData;
 import com.bid.car.client.robot.ScheduleCaptureTask;
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -30,6 +31,8 @@ public class Main {
         Config config = new Config();
         Server server = config.readConfig();
 
+        ConfigData configData = config.readConfigData();
+
         log.info("start");
         Socket socket = IO.socket("http://"+server.getHost()+":" + server.getPort());
         socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
@@ -55,12 +58,19 @@ public class Main {
 //        });
 //
         socket.connect();
-        LocalTime now = LocalTime.now().plus(20, SECONDS);
-        LocalTime lastBidTime = LocalTime.now().plus(28,  SECONDS);
+        String startTimeStr = configData.getStartTime();
+        String lastBidTimeStr = configData.getLastBidTime() ;
+        String addPriceStr = configData.getAddPrice() ;
+        LocalTime startTime = LocalTime.parse(startTimeStr);
+//        LocalTime now = LocalTime.now().plus(20, SECONDS);
+        LocalTime lastBidTime = LocalTime.parse(lastBidTimeStr);
+        Integer addPrice = Integer.valueOf(addPriceStr);
+
+
         OSSClient ossClient = new OSSClient("oss-cn-shanghai.aliyuncs.com", "LTAI5g3WwlfsKf3A",  "zPzVwt9JOgHgHCbUyosfKIrMl9XWrM");
         ScheduleCaptureTask scheduleCaptureTask = new ScheduleCaptureTask(Config.readLowestPricePosition(),
-                Config.readInputPricePosition(),Config.readInputCode(), Config.readSubmitButton(), 600 ,  Config.readBidButton(),
-                Config.readCodePosition(), lastBidTime, now, Config.readNewLowestPosition(), ossClient);
+                Config.readInputPricePosition(),Config.readInputCode(), Config.readSubmitButton(), addPrice ,  Config.readBidButton(),
+                Config.readCodePosition(), lastBidTime, startTime, Config.readNewLowestPosition(), ossClient);
         scheduleCaptureTask.start(socket);
 //        File file = new File("/Users/gwen/Desktop/1.png");
 //        FileInputStream fileInputStream = new FileInputStream(file);

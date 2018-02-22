@@ -21,6 +21,25 @@ public class Config {
         return server;
     }
 
+    public ConfigData readConfigData() throws IOException {
+        InputStream inputStream = new FileInputStream("config.properties");
+        Properties properties = new Properties();
+        properties.load(inputStream);
+
+        String startTime = properties.getProperty("startTime");
+        String lastBidTime = properties.getProperty("lastBidTime");
+        String addPrice = properties.getProperty("addPrice");
+
+        ConfigData configData = new ConfigData();
+        configData.setStartTime(startTime);
+        configData.setLastBidTime(lastBidTime);
+        configData.setAddPrice(addPrice);
+
+        inputStream.close();
+
+        return configData;
+    }
+
     public static Rectangle readLowestPricePosition() throws IOException {
         File file = new File("lowest-price.properties");
         InputStream inputStream = new FileInputStream(file);
