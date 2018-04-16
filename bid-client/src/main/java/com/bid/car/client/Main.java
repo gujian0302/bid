@@ -67,7 +67,7 @@ public class Main {
         Integer addPrice = Integer.valueOf(addPriceStr);
 
 
-        OSSClient ossClient = new OSSClient("oss-cn-shanghai.aliyuncs.com", "LTAI5g3WwlfsKf3A",  "zPzVwt9JOgHgHCbUyosfKIrMl9XWrM");
+        OSSClient ossClient = new OSSClient("oss-cn-shanghai.aliyuncs.com", "",  "");
         ScheduleCaptureTask scheduleCaptureTask = new ScheduleCaptureTask(Config.readLowestPricePosition(),
                 Config.readInputPricePosition(),Config.readInputCode(), Config.readSubmitButton(), addPrice ,  Config.readBidButton(),
                 Config.readCodePosition(), lastBidTime, startTime, Config.readNewLowestPosition(), ossClient);
